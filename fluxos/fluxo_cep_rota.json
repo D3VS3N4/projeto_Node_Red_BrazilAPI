@@ -1,0 +1,103 @@
+[
+    {
+        "id": "5195a0d992ae4a33",
+        "type": "tab",
+        "label": "Buscador de CEP",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "229a7f47135ab9a9",
+        "type": "http in",
+        "z": "5195a0d992ae4a33",
+        "name": "Rota",
+        "url": "/cep/:numero",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 40,
+        "wires": [
+            [
+                "9041d462332253dc"
+            ]
+        ]
+    },
+    {
+        "id": "9041d462332253dc",
+        "type": "function",
+        "z": "5195a0d992ae4a33",
+        "name": "Montar URL CEP",
+        "func": "let cep = msg.req.params.numero; // puxa o CEP da rota. Ex: 01001000\nmsg.method = \"GET\";              // definir requisição\nmsg.url = `https://brasilapi.com.br/api/cep/v2/${cep}`; // montagem da URL completa\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 40,
+        "wires": [
+            [
+                "14f879662f34e54d"
+            ]
+        ]
+    },
+    {
+        "id": "14f879662f34e54d",
+        "type": "http request",
+        "z": "5195a0d992ae4a33",
+        "name": "",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "{{{url}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 490,
+        "y": 40,
+        "wires": [
+            [
+                "532b6e6d5e00fd36"
+            ]
+        ]
+    },
+    {
+        "id": "532b6e6d5e00fd36",
+        "type": "function",
+        "z": "5195a0d992ae4a33",
+        "name": "Fazer o visual do CEP",
+        "func": "let dados = msg.payload;\n\n// Se não encontrar o CEP (ou a API der erro)\nif (!dados || dados.errors) {\n    msg.headers = { 'content-type': 'text/html; charset=utf-8' };\n    msg.payload = `<html><body><h2>CEP não encontrado ou inválido.</h2></body></html>`;\n    return msg;\n}\n\n// Se o CEP encpntrar o CCEP\nlet html = `\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Resultado do CEP</title>\n  <style>\n    body { font-family: Arial, sans-serif; padding: 30px; background: #f8f8f8; }\n    h1 { color: #333; }\n    .info { margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }\n    p { margin: 5px 0; }\n  </style>\n</head>\n<body>\n  <h1>Resultado da busca</h1>\n  <div class=\"info\">\n    <p><strong>CEP:</strong> ${dados.cep}</p>\n    <p><strong>Rua:</strong> ${dados.street}</p>\n    <p><strong>Bairro:</strong> ${dados.neighborhood}</p>\n    <p><strong>Cidade:</strong> ${dados.city}</p>\n    <p><strong>Estado:</strong> ${dados.state}</p>\n  </div>\n</body>\n</html>`;\n\nmsg.headers = { 'content-type': 'text/html; charset=utf-8' };\nmsg.payload = html;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 40,
+        "wires": [
+            [
+                "1b80d5bc0d1729f8"
+            ]
+        ]
+    },
+    {
+        "id": "1b80d5bc0d1729f8",
+        "type": "http response",
+        "z": "5195a0d992ae4a33",
+        "name": "Envio da resposta",
+        "statusCode": "",
+        "headers": {},
+        "x": 510,
+        "y": 120,
+        "wires": []
+    }
+]
