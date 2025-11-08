@@ -83,7 +83,7 @@ Siga estas instruções detalhadas para configurar o ambiente e colocar o projet
     ```bash
     node-red
     ```
-    O servidor estará ativo em `http://127.0.0.1:1880/`.
+    O servidor estará ativo em `localhost:1880/`.
 
 2.  Abra a URL no seu navegador.
 
