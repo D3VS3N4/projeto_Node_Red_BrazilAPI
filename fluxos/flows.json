@@ -1,0 +1,256 @@
+[
+    {
+        "id": "fa12011519679fae",
+        "type": "tab",
+        "label": "Lista de Corretoras",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5195a0d992ae4a33",
+        "type": "tab",
+        "label": "Buscador de CEP",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0b80856d73c96d80",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.hivemq.com",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "24e7cd58985930ef",
+        "type": "http in",
+        "z": "fa12011519679fae",
+        "name": "Corretoras",
+        "url": "/Corretoras",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 120,
+        "y": 40,
+        "wires": [
+            [
+                "ec333aa9172e2c14"
+            ]
+        ]
+    },
+    {
+        "id": "ec333aa9172e2c14",
+        "type": "http request",
+        "z": "fa12011519679fae",
+        "name": "API Request",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://brasilapi.com.br/api/cvm/corretoras/v1",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 270,
+        "y": 40,
+        "wires": [
+            [
+                "09c82d80e24e00a3"
+            ]
+        ]
+    },
+    {
+        "id": "09c82d80e24e00a3",
+        "type": "function",
+        "z": "fa12011519679fae",
+        "name": "function 1",
+        "func": "\nlet brokers = msg.payload;\n\n// se não tiver dados, responde com mensagem de erro\nif (!brokers || !Array.isArray(brokers) || brokers.length === 0) {\n    msg.headers = { 'content-type': 'text/html; charset=utf-8' };\n    msg.payload = `<html><head><meta charset=\"utf-8\"><title>Corretoras</title></head>\n        <body><h2>Lista de corretoras</h2><p>Nenhuma corretora encontrada ou erro na API.</p></body></html>`;\n    return msg;\n}\n\nlet rows = brokers.map(b => {\n    return `<li>${b.nome_social} - ${b.municipio} / ${b.cnpj}</li>`;\n}).join('\\n');\n\nmsg.headers = { 'content-type': 'text/html; charset=utf-8' };\nmsg.payload = `\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Corretoras CVM</title>\n  <style>\n    body{font-family:Arial,Helvetica,sans-serif;padding:20px}\n    h1{color:#333}\n    ul{list-style:none;padding:0}\n    li{padding:6px 0;border-bottom:1px solid #eee}\n  </style>\n</head>\n<body>\n  <h1>Lista de Corretoras (CVM)</h1>\n  <ul>${rows}</ul>\n</body>\n</html>`;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 40,
+        "wires": [
+            [
+                "5f3ef4d274bdc728"
+            ]
+        ]
+    },
+    {
+        "id": "5f3ef4d274bdc728",
+        "type": "http response",
+        "z": "fa12011519679fae",
+        "name": "Enviar conteúdo",
+        "statusCode": "",
+        "headers": {},
+        "x": 620,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "229a7f47135ab9a9",
+        "type": "http in",
+        "z": "5195a0d992ae4a33",
+        "name": "Rota",
+        "url": "/cep/:numero",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 40,
+        "wires": [
+            [
+                "9041d462332253dc"
+            ]
+        ]
+    },
+    {
+        "id": "9041d462332253dc",
+        "type": "function",
+        "z": "5195a0d992ae4a33",
+        "name": "Montar URL CEP",
+        "func": "let cep = msg.req.params.numero; // puxa o CEP da rota. Ex: 01001000\nmsg.method = \"GET\";              // definir requisição\nmsg.url = `https://brasilapi.com.br/api/cep/v2/${cep}`; // montagem da URL completa\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 40,
+        "wires": [
+            [
+                "14f879662f34e54d"
+            ]
+        ]
+    },
+    {
+        "id": "14f879662f34e54d",
+        "type": "http request",
+        "z": "5195a0d992ae4a33",
+        "name": "",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "{{{url}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 490,
+        "y": 40,
+        "wires": [
+            [
+                "9971e21de3ba4f55"
+            ]
+        ]
+    },
+    {
+        "id": "532b6e6d5e00fd36",
+        "type": "function",
+        "z": "5195a0d992ae4a33",
+        "name": "Fazer o visual do CEP",
+        "func": "let dados = msg.payload;\n\n\n// Função pra impedir o \"?\" da rota,que resulta no erro \"Cannot GET /cep\"\nconst scriptRedirecionamento = `\n<script>\n    function buscarCep(event) {\n        // Impede que o formulário submeta via GET padrão (que adiciona o '?')\n        event.preventDefault(); \n        \n        // Pega o valor do input pelo ID\n        // O ID 'cep_input_novo' foi usado para evitar conflito com outros IDs, caso existam.\n        const cep = document.getElementById('cep_input_novo').value;\n        \n        // Validação simples de 8 dígitos numéricos\n        if (cep && cep.length === 8 && !isNaN(cep)) {\n            // Força o redirecionamento para a URL no formato /cep/VALOR (com a barra /)\n            window.location.href = \"/cep/\" + cep;\n        } else {\n            alert(\"Por favor, digite um CEP válido com 8 dígitos.\");\n        }\n    }\n</script>\n`;\n\n// Se não encontrar o CEP (ou a API der erro)\nif (!dados || dados.errors) {\n    msg.headers = { 'content-type': 'text/html; charset=utf-8' };\n    msg.statusCode = 404;\n    let htmlErro = `\n    <html>\n    <head>\n      <meta charset=\"utf-8\">\n      <title>Resultado do CEP</title>\n      <style>\n        body { font-family: Arial, sans-serif; padding: 30px; background: #f8f8f8; }\n   \n        .form-container { margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }\n        input[type=\"text\"] { padding: 8px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }\n        input[type=\"submit\"] { background-color: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }\n        h2 { color: #dc3545; }\n      </style>\n    </head>\n    <body>\n      <div class=\"form-container\">\n        <h2>Pesquisar Novo CEP</h2>\n                <form onsubmit=\"buscarCep(event)\">\n                    <input type=\"text\" id=\"cep_input_novo\" placeholder=\"Digite o CEP\" maxlength=\"8\" required>\n          <input type=\"submit\" value=\"Buscar\">\n        </form>\n      </div>\n   \n      <h2>CEP não encontrado ou inválido.</h2>\n     \n        ${scriptRedirecionamento}\n    </body>\n    </html>`;\n   \n    msg.payload = htmlErro;\n    return msg;\n}\n\n// Se encontrar o CCEP \nlet html = `\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Resultado do CEP</title>\n  <style>\n    body { font-family: Arial, sans-serif; padding: 30px; background: #f8f8f8; }\n    h1 { color: #333; }\n    .form-container { margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }\n    input[type=\"text\"] { padding: 8px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }\n    input[type=\"submit\"] { background-color: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }\n    .info { margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }\n    p { margin: 5px 0; }\n  </style>\n</head>\n<body>\n\n  <div class=\"form-container\">\n    <h1>Pesquisar Novo CEP</h1>\n        <form onsubmit=\"buscarCep(event)\">\n            <input type=\"text\" id=\"cep_input_novo\" placeholder=\"Digite o CEP\" maxlength=\"8\" required>\n            <input type=\"submit\" value=\"Buscar\">\n        </form>\n  </div>\n\n  <h1>Resultado da busca para ${dados.cep}</h1>\n  <div class=\"info\">\n    <p><strong>CEP:</strong> ${dados.cep}</p>\n    <p><strong>Rua:</strong> ${dados.street}</p>\n    <p><strong>Bairro:</strong> ${dados.neighborhood}</p>\n    <p><strong>Cidade:</strong> ${dados.city}</p>\n    <p><strong>Estado:</strong> ${dados.state}</p>\n\n    ${scriptRedirecionamento}\n</body>\n</html>`;\n\nmsg.headers = { 'content-type': 'text/html; charset=utf-8' };\nmsg.statusCode = 200;\nmsg.payload = html;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 120,
+        "wires": [
+            [
+                "1b80d5bc0d1729f8"
+            ]
+        ]
+    },
+    {
+        "id": "1b80d5bc0d1729f8",
+        "type": "http response",
+        "z": "5195a0d992ae4a33",
+        "name": "Envio da resposta",
+        "statusCode": "",
+        "headers": {},
+        "x": 530,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "9971e21de3ba4f55",
+        "type": "function",
+        "z": "5195a0d992ae4a33",
+        "name": "Função MQTT",
+        "func": "// Obtém os dados relevantes do resultado da busca de CEP\nconst dados_originais = msg.payload;\n\nconst cep = dados_originais.cep;\nconst cidade = dados_originais.city;\n\nconst notificacao = {\n    timestamp: Date.now(),\n    servico: \"Buscador de CEP\",\n    status: \"SUCESSO\",\n    dados: {\n        cep_buscado: cep,\n        cidade_encontrada: cidade\n    }\n};\n\nconst msg_mqtt = {}; //Saída 2 \"Mqtt\",saída 1 \"fazer visual do Cep\"\nmsg_mqtt.topic = \"d3v/projeto_brasilapi/cep_buscas\";\nmsg_mqtt.payload = JSON.stringify(notificacao);\n\nreturn [msg, msg_mqtt];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 40,
+        "wires": [
+            [
+                "532b6e6d5e00fd36"
+            ],
+            [
+                "8ce3474495dd206f"
+            ]
+        ]
+    },
+    {
+        "id": "8ce3474495dd206f",
+        "type": "mqtt out",
+        "z": "5195a0d992ae4a33",
+        "name": "",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0b80856d73c96d80",
+        "x": 110,
+        "y": 120,
+        "wires": []
+    }
+]
